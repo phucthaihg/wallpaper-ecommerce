@@ -1,408 +1,449 @@
 const { User } = require('../models');
-const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../utils/email');
+const { Op } = require('sequelize');
+const fs = require('fs').promises;
+const path = require('path');
 
-exports.register = async (req, res) => {
-    try {
-        const { email, password, firstName, lastName, phone } = req.body;
-
-        // Check if user exists
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email already registered' });
-        }
-
-        // Create user
-        const user = await User.create({
-            email,
-            password,
-            firstName,
-            lastName,
-            phone
-        });
-
-        // Generate token
-        const token = jwt.sign(
-            { id: user.id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.status(201).json({
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        // Find user
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        // Validate password
-        const isValid = await user.validatePassword(password);
-        if (!isValid) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        // Update last login
-        user.lastLogin = new Date();
-        await user.save();
-
-        // Generate token
-        const token = jwt.sign(
-            { id: user.id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.json({
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
+/**
+ * Get user's profile
+ * Lấy thông tin cá nhân của người dùng
+ */
 exports.getProfile = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.user.id, {
-            attributes: { exclude: ['password'] }
-        });
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Update user profile
+ * Cập nhật thông tin cá nhân người dùng
+ */
 exports.updateProfile = async (req, res) => {
-    try {
-        const { firstName, lastName, phone } = req.body;
+  try {
+    const { firstName, lastName, phone } = req.body;
+    const user = await User.findByPk(req.user.id);
 
-        const user = await User.findByPk(req.user.id);
+    await user.update({
+      firstName: firstName || user.firstName,
+      lastName: lastName || user.lastName,
+      phone: phone || user.phone
+    });
 
-        user.firstName = firstName || user.firstName;
-        user.lastName = lastName || user.lastName;
-        user.phone = phone || user.phone;
+    const updatedUser = await User.findByPk(user.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
 
-        await user.save();
-
-        res.json({
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// Address Management
+/**
+ * Update user avatar
+ * Cập nhật ảnh đại diện người dùng
+ */
+exports.updateAvatar = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'No file uploaded - Không có file được tải lên'
+      });
+    }
+
+    // Delete old avatar if exists
+    // Xóa ảnh đại diện cũ nếu tồn tại
+    if (user.avatar) {
+      const oldAvatarPath = path.join(__dirname, '../public', user.avatar);
+      await fs.unlink(oldAvatarPath).catch(() => {});
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    await user.update({ avatar: avatarUrl });
+
+    res.json({
+      avatar: avatarUrl,
+      message: 'Avatar updated successfully - Cập nhật ảnh đại diện thành công'
+    });
+  } catch (error) {
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Get user addresses
+ * Lấy danh sách địa chỉ người dùng
+ */
+exports.getAddresses = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    res.json(user.addresses);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Add new address for user
+ * Thêm địa chỉ mới cho người dùng
+ */
 exports.addAddress = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.user.id);
-        const newAddress = {
-            id: crypto.randomUUID(),
-            fullName: req.body.fullName,
-            phone: req.body.phone,
-            address: req.body.address,
-            city: req.body.city,
-            province: req.body.province,
-            postalCode: req.body.postalCode,
-            isDefault: Boolean(req.body.isDefault)
-        };
+  try {
+    const user = await User.findByPk(req.user.id);
 
-        // If this is the first address or set as default
-        if (newAddress.isDefault || user.addresses.length === 0) {
-            user.addresses = user.addresses.map(addr => ({
-                ...addr,
-                isDefault: false
-            }));
-            newAddress.isDefault = true;
-        }
+    const newAddress = {
+      id: crypto.randomUUID(),
+      fullName: req.body.fullName,
+      phone: req.body.phone,
+      address: req.body.address,
+      city: req.body.city,
+      province: req.body.province,
+      postalCode: req.body.postalCode,
+      isDefault: Boolean(req.body.isDefault)
+    };
 
-        user.addresses = [...user.addresses, newAddress];
-        await user.save();
-
-        res.status(201).json(newAddress);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // Set as default if first address or requested
+    // Đặt làm mặc định nếu là địa chỉ đầu tiên hoặc được yêu cầu
+    if (newAddress.isDefault || user.addresses.length === 0) {
+      user.addresses = user.addresses.map(addr => ({
+        ...addr,
+        isDefault: false
+      }));
+      newAddress.isDefault = true;
     }
+
+    user.addresses = [...user.addresses, newAddress];
+    await user.save();
+
+    res.status(201).json(newAddress);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Update user's address
+ * Cập nhật địa chỉ người dùng
+ */
 exports.updateAddress = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.user.id);
-        const addressIndex = user.addresses.findIndex(addr => addr.id === req.params.id);
+  try {
+    const user = await User.findByPk(req.user.id);
+    const addressIndex = user.addresses.findIndex(addr => addr.id === req.params.id);
 
-        if (addressIndex === -1) {
-            return res.status(404).json({ message: 'Address not found' });
-        }
-
-        const updatedAddress = {
-            ...user.addresses[addressIndex],
-            fullName: req.body.fullName || user.addresses[addressIndex].fullName,
-            phone: req.body.phone || user.addresses[addressIndex].phone,
-            address: req.body.address || user.addresses[addressIndex].address,
-            city: req.body.city || user.addresses[addressIndex].city,
-            province: req.body.province || user.addresses[addressIndex].province,
-            postalCode: req.body.postalCode || user.addresses[addressIndex].postalCode,
-            isDefault: Boolean(req.body.isDefault)
-        };
-
-        // Handle default address logic
-        if (updatedAddress.isDefault) {
-            user.addresses = user.addresses.map(addr => ({
-                ...addr,
-                isDefault: false
-            }));
-        }
-
-        user.addresses[addressIndex] = updatedAddress;
-        await user.save();
-
-        res.json(updatedAddress);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (addressIndex === -1) {
+      return res.status(404).json({ message: 'Address not found - Không tìm thấy địa chỉ' });
     }
+
+    const updatedAddress = {
+      ...user.addresses[addressIndex],
+      fullName: req.body.fullName || user.addresses[addressIndex].fullName,
+      phone: req.body.phone || user.addresses[addressIndex].phone,
+      address: req.body.address || user.addresses[addressIndex].address,
+      city: req.body.city || user.addresses[addressIndex].city,
+      province: req.body.province || user.addresses[addressIndex].province,
+      postalCode: req.body.postalCode || user.addresses[addressIndex].postalCode,
+      isDefault: Boolean(req.body.isDefault)
+    };
+
+    // Handle default address logic
+    // Xử lý logic địa chỉ mặc định
+    if (updatedAddress.isDefault) {
+      user.addresses = user.addresses.map(addr => ({
+        ...addr,
+        isDefault: false
+      }));
+    }
+
+    user.addresses[addressIndex] = updatedAddress;
+    await user.save();
+
+    res.json(updatedAddress);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Delete user address
+ * Xóa địa chỉ người dùng
+ * 
+ * @param {string} addressId - Address ID / ID địa chỉ
+ */
 exports.deleteAddress = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.user.id);
-        const addressIndex = user.addresses.findIndex(addr => addr.id === req.params.id);
+  try {
+    const user = await User.findByPk(req.user.id);
+    const addressIndex = user.addresses.findIndex(addr => addr.id === req.params.id);
 
-        if (addressIndex === -1) {
-            return res.status(404).json({ message: 'Address not found' });
-        }
-
-        // If deleting default address, set another as default
-        const wasDefault = user.addresses[addressIndex].isDefault;
-        user.addresses.splice(addressIndex, 1);
-
-        if (wasDefault && user.addresses.length > 0) {
-            user.addresses[0].isDefault = true;
-        }
-
-        await user.save();
-        res.json({ message: 'Address deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (addressIndex === -1) {
+      return res.status(404).json({ message: 'Address not found - Không tìm thấy địa chỉ' });
     }
+
+    const wasDefault = user.addresses[addressIndex].isDefault;
+    user.addresses.splice(addressIndex, 1);
+
+    // If deleted address was default, set new default
+    // Nếu địa chỉ bị xóa là mặc định, đặt địa chỉ mặc định mới
+    if (wasDefault && user.addresses.length > 0) {
+      user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+    res.json({ message: 'Address deleted successfully - Xóa địa chỉ thành công' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// Password Management
-exports.forgotPassword = async (req, res) => {
-    try {
-        const user = await User.findOne({ where: { email: req.body.email } });
+/**
+ * Set default address
+ * Đặt địa chỉ mặc định
+ */
+exports.setDefaultAddress = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    const addressIndex = user.addresses.findIndex(addr => addr.id === req.params.id);
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        user.resetPasswordToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex');
-        user.resetPasswordExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
-
-        await user.save();
-
-        // Send reset email
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-        await sendEmail({
-            to: user.email,
-            subject: 'Password Reset Request',
-            text: `To reset your password, please click the link below:\n\n${resetUrl}\n\nThis link will expire in 30 minutes.`,
-            html: `
-          <p>To reset your password, please click the link below:</p>
-          <a href="${resetUrl}">Reset Password</a>
-          <p>This link will expire in 30 minutes.</p>
-        `
-        });
-
-        res.json({ message: 'Password reset email sent' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (addressIndex === -1) {
+      return res.status(404).json({
+        message: 'Address not found - Không tìm thấy địa chỉ'
+      });
     }
+
+    user.addresses = user.addresses.map((addr, index) => ({
+      ...addr,
+      isDefault: index === addressIndex
+    }));
+
+    await user.save();
+    res.json(user.addresses[addressIndex]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-exports.resetPassword = async (req, res) => {
-    try {
-        const resetPasswordToken = crypto
-            .createHash('sha256')
-            .update(req.body.token)
-            .digest('hex');
-
-        const user = await User.findOne({
-            where: {
-                resetPasswordToken,
-                resetPasswordExpires: { [Op.gt]: Date.now() }
-            }
-        });
-
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired reset token' });
-        }
-
-        // Set new password
-        user.password = req.body.password;
-        user.resetPasswordToken = null;
-        user.resetPasswordExpires = null;
-        await user.save();
-
-        // Send confirmation email
-        await sendEmail({
-            to: user.email,
-            subject: 'Password Reset Successful',
-            text: 'Your password has been successfully reset.',
-            html: '<p>Your password has been successfully reset.</p>'
-        });
-
-        res.json({ message: 'Password reset successful' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+/**
+ * Get user preferences
+ * Lấy tùy chọn người dùng
+ */
+exports.getPreferences = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    res.json(user.preferences);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-exports.changePassword = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.user.id);
-
-        // Verify current password
-        const isValid = await user.validatePassword(req.body.currentPassword);
-        if (!isValid) {
-            return res.status(401).json({ message: 'Current password is incorrect' });
-        }
-
-        // Update password
-        user.password = req.body.newPassword;
-        await user.save();
-
-        // Send confirmation email
-        await sendEmail({
-            to: user.email,
-            subject: 'Password Changed',
-            text: 'Your password has been successfully changed.',
-            html: '<p>Your password has been successfully changed.</p>'
-        });
-
-        res.json({ message: 'Password changed successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+/**
+ * Update user preferences
+ * Cập nhật tùy chọn người dùng
+ */
+exports.updatePreferences = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    await user.update({
+      preferences: {
+        ...user.preferences,
+        ...req.body
+      }
+    });
+    res.json(user.preferences);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// Admin Methods
+/**
+ * Get all users (admin only)
+ * Lấy tất cả người dùng (chỉ admin)
+ */
 exports.getAllUsers = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      role,
+      isActive
+    } = req.query;
 
-        const users = await User.findAndCountAll({
-            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] },
-            limit,
-            offset,
-            order: [['createdAt', 'DESC']]
-        });
-
-        res.json({
-            users: users.rows,
-            total: users.count,
-            currentPage: page,
-            totalPages: Math.ceil(users.count / limit)
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    const where = {};
+    
+    if (search) {
+      where[Op.or] = [
+        { email: { [Op.iLike]: `%${search}%` } },
+        { firstName: { [Op.iLike]: `%${search}%` } },
+        { lastName: { [Op.iLike]: `%${search}%` } }
+      ];
     }
+
+    if (role) where.role = role;
+    if (isActive !== undefined) where.isActive = isActive;
+
+    const users = await User.findAndCountAll({
+      where,
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] },
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      users: users.rows,
+      total: users.count,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(users.count / limit)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Get user by ID (admin only)
+ * Lấy người dùng theo ID (chỉ admin)
+ */
 exports.getUserById = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id, {
-            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
-        });
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found - Không tìm thấy người dùng'
+      });
     }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Update user (admin only)
+ * Cập nhật người dùng (chỉ admin)
+ */
 exports.updateUser = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id);
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Update allowed fields
-        const allowedUpdates = ['firstName', 'lastName', 'phone', 'role', 'isActive'];
-        allowedUpdates.forEach(field => {
-            if (req.body[field] !== undefined) {
-                user[field] = req.body[field];
-            }
-        });
-
-        await user.save();
-
-        res.json({
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone,
-            role: user.role,
-            isActive: user.isActive
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const user = await User.findByPk(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found - Không tìm thấy người dùng'
+      });
     }
+
+    const allowedUpdates = ['firstName', 'lastName', 'phone', 'role', 'isActive'];
+    allowedUpdates.forEach(field => {
+      if (req.body[field] !== undefined) {
+        user[field] = req.body[field];
+      }
+    });
+
+    await user.save();
+
+    const updatedUser = await User.findByPk(user.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+/**
+ * Delete user (admin only)
+ * Xóa người dùng (chỉ admin)
+ */
 exports.deleteUser = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id);
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        await user.destroy(); // Soft delete
-        res.json({ message: 'User deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const user = await User.findByPk(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found - Không tìm thấy người dùng'
+      });
     }
+
+    if (user.avatar) {
+      const avatarPath = path.join(__dirname, '../public', user.avatar);
+      await fs.unlink(avatarPath).catch(() => {});
+    }
+
+    await user.destroy();
+    res.json({
+      message: 'User deleted successfully - Xóa người dùng thành công'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
+/**
+ * Bulk delete users (admin only)
+ * Xóa nhiều người dùng (chỉ admin)
+ */
+exports.bulkDeleteUsers = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const users = await User.findAll({
+      where: { id: { [Op.in]: ids } }
+    });
+
+    // Delete avatars
+    // Xóa ảnh đại diện
+    for (const user of users) {
+      if (user.avatar) {
+        const avatarPath = path.join(__dirname, '../public', user.avatar);
+        await fs.unlink(avatarPath).catch(() => {});
+      }
+    }
+
+    await User.destroy({
+      where: { id: { [Op.in]: ids } }
+    });
+
+    res.json({
+      message: 'Users deleted successfully - Xóa người dùng thành công'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Update user status (admin only)
+ * Cập nhật trạng thái người dùng (chỉ admin)
+ */
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const user = await User.findByPk(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found - Không tìm thấy người dùng'
+      });
+    }
+
+    await user.update({ isActive });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = exports;
