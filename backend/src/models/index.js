@@ -13,17 +13,16 @@ const Category = require('./category.model');
 const Product = require('./product.model');
 const SpecificationTemplate = require('./specification-template.model');
 const ProductSpecification = require('./product-specification.model');
+const { Cart, CartItem } = require('./cart.model');
 
 /**
- * Define relationships
- * Định nghĩa các mối quan hệ
+ * Category relationships / Quan hệ của Category
  */
-
-// Category relationships / Quan hệ của Category
 Category.hasMany(Category, {
   as: 'subcategories',
   foreignKey: 'parentId'
 });
+
 Category.belongsTo(Category, {
   as: 'parent',
   foreignKey: 'parentId'
@@ -33,47 +32,80 @@ Category.hasMany(Product, {
   foreignKey: 'categoryId',
   as: 'products'
 });
+
 Category.hasMany(SpecificationTemplate, {
   foreignKey: 'categoryId',
   as: 'specificationTemplates'
 });
 
-// Product relationships / Quan hệ của Product
+/**
+ * Product relationships / Quan hệ của Product
+ */
 Product.belongsTo(Category, {
   foreignKey: 'categoryId',
   as: 'category'
 });
+
 Product.hasMany(ProductSpecification, {
   foreignKey: 'productId',
   as: 'specifications'
 });
+
 Product.belongsTo(User, {
   foreignKey: 'createdBy',
   as: 'creator'
 });
+
 Product.belongsTo(User, {
   foreignKey: 'updatedBy',
   as: 'updater'
 });
 
-// SpecificationTemplate relationships / Quan hệ của SpecificationTemplate
+Product.hasMany(CartItem, {
+  foreignKey: 'categoryId',
+  as: 'category'
+});
+
+/**
+ * SpecificationTemplate relationships / Quan hệ của SpecificationTemplate
+ */
 SpecificationTemplate.belongsTo(Category, {
   foreignKey: 'categoryId',
   as: 'category'
 });
+
 SpecificationTemplate.hasMany(ProductSpecification, {
   foreignKey: 'specificationTemplateId',
   as: 'productSpecifications'
 });
 
-// ProductSpecification relationships / Quan hệ của ProductSpecification
+/**
+ * ProductSpecification relationships / Quan hệ của ProductSpecification
+ */
 ProductSpecification.belongsTo(Product, {
   foreignKey: 'productId',
   as: 'product'
 });
+
 ProductSpecification.belongsTo(SpecificationTemplate, {
   foreignKey: 'specificationTemplateId',
   as: 'template'
+});
+
+/**
+ * Cart relationships / Quan hệ của Cart
+ */
+Cart.hasMany(CartItem, { 
+  as: 'items', 
+  foreignKey: 'cartId' 
+});
+
+CartItem.belongsTo(Cart, { 
+  foreignKey: 'cartId' 
+});
+
+CartItem.belongsTo(Product, { 
+  foreignKey: 'productId' 
 });
 
 /**
@@ -107,6 +139,8 @@ module.exports = {
     Category,
     Product,
     SpecificationTemplate,
-    ProductSpecification
+    ProductSpecification,
+    Cart,
+    CartItem
   }
 };
