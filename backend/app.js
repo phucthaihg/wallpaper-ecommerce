@@ -7,12 +7,14 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { sequelize } = require('./models');  // Changed this line to import from models
+const cookieParser = require('cookie-parser');
 
 /**
  * Initialize express app
  * Khởi tạo ứng dụng express
  */
 const app = express();
+app.use(cookieParser());
 
 /**
  * Security middleware configuration

@@ -7,7 +7,7 @@ const { Op } = require('sequelize');
  */
 exports.getCart = async (req, res) => {
     try {
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
         const userId = req.user?.id;
 
         // Find active cart for user or session
