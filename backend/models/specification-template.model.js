@@ -7,11 +7,10 @@ const sequelize = require('../config/database');
  */
 const SpecificationTemplate = sequelize.define('SpecificationTemplate', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier for template
-    // Định danh duy nhất cho mẫu
+    type: DataTypes.INTEGER
   },
   name: {
     type: DataTypes.STRING,
@@ -57,7 +56,7 @@ const SpecificationTemplate = sequelize.define('SpecificationTemplate', {
     // Thông số có bắt buộc hay không
   },
   categoryId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Categories',

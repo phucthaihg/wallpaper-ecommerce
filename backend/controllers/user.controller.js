@@ -101,7 +101,7 @@ exports.addAddress = async (req, res) => {
     const user = await User.findByPk(req.user.id);
 
     const newAddress = {
-      id: crypto.randomUUID(),
+      id: crypto.randomInt(1, 1000000), // Generate a random integer ID
       fullName: req.body.fullName,
       phone: req.body.phone,
       address: req.body.address,

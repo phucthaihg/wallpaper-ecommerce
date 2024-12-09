@@ -2,9 +2,10 @@ module.exports = {
     up: async (queryInterface, Sequelize) => {
       await queryInterface.createTable('SpecificationTemplates', {
         id: {
-          type: Sequelize.UUID,
-          defaultValue: Sequelize.UUIDV4,
-          primaryKey: true
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: Sequelize.INTEGER
         },
         name: {
           type: Sequelize.STRING,
@@ -31,7 +32,7 @@ module.exports = {
           defaultValue: false
         },
         categoryId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: false,
           references: {
             model: 'Categories',

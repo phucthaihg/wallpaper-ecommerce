@@ -9,11 +9,10 @@ const sequelize = require('../config/database');
  */
 const Category = sequelize.define('Category', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier for the category
-    // Định danh duy nhất cho danh mục
+    type: DataTypes.INTEGER
   },
   name: {
     type: DataTypes.STRING,
@@ -48,7 +47,7 @@ const Category = sequelize.define('Category', {
     // URL hình ảnh danh mục
   },
   parentId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: true,
     references: {
       model: 'Categories',

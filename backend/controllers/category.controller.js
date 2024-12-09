@@ -346,3 +346,33 @@ exports.bulkDeleteCategories = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get category tree
+exports.getCategoryTree = async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      include: [
+        {
+          model: Category,
+          as: 'subcategories',
+          include: {
+            model: Category,
+            as: 'subcategories'
+          }
+        },
+        {
+          model: Category,
+          as: 'parent'
+        }
+      ],
+      order: [
+        ['displayOrder', 'ASC'],
+        ['name', 'ASC']
+      ]
+    });
+
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

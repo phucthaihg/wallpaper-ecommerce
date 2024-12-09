@@ -11,18 +11,21 @@ export const productService = {
   // Get a single product by ID
   getById: async (id) => {
     const { data } = await api.get(`/products/${id}`);
+    console.log("productService.getById", data);
     return data;
   },
 
   // Get products by category
   getByCategory: async (categoryId, params = {}) => {
     const { data } = await api.get(`/categories/${categoryId}/products`, { params });
+    console.log("productService.getByCategory", data);
     return data;
   },
 
   // Get featured products
   getFeatured: async () => {
     const { data } = await api.get('/products/featured');
+    console.log("productService.getFeatured", data);
     return data;
   },
 

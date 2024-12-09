@@ -9,8 +9,9 @@ const upload = require('../config/multer');
  * Các route công khai để lấy thông tin danh mục
  */
 router.get('/', categoryController.getAllCategories);
-router.get('/:id', categoryController.getCategoryById);
+router.get('/tree', categoryController.getCategoryTree);
 router.get('/slug/:slug', categoryController.getCategoryBySlug);
+router.get('/:id', categoryController.getCategoryById);
 router.get('/:id/products', categoryController.getCategoryProducts);
 
 /**
@@ -32,5 +33,7 @@ router.put('/:id',
 router.delete('/:id', categoryController.deleteCategory);
 router.put('/:id/order', categoryController.updateDisplayOrder);
 router.post('/bulk-delete', categoryController.bulkDeleteCategories);
+
+
 
 module.exports = router;

@@ -8,14 +8,13 @@ module.exports = {
       // Tạo bảng Giỏ hàng
       await queryInterface.createTable('Carts', {
         id: {
-          type: Sequelize.UUID,
-          defaultValue: Sequelize.UUIDV4,
+          allowNull: false,
+          autoIncrement: true,
           primaryKey: true,
-          // Unique identifier for cart
-          // Định danh duy nhất cho giỏ hàng
+          type: Sequelize.INTEGER
         },
         userId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: true,
           references: {
             model: 'Users',
@@ -66,12 +65,13 @@ module.exports = {
       // Tạo bảng Chi tiết giỏ hàng
       await queryInterface.createTable('CartItems', {
         id: {
-          type: Sequelize.UUID,
-          defaultValue: Sequelize.UUIDV4,
-          primaryKey: true
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: Sequelize.INTEGER
         },
         cartId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: false,
           references: {
             model: 'Carts',
@@ -82,7 +82,7 @@ module.exports = {
           // Tham chiếu đến giỏ hàng chứa
         },
         productId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: false,
           references: {
             model: 'Products',

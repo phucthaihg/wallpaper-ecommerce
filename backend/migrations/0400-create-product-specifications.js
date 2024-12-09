@@ -2,12 +2,13 @@ module.exports = {
     up: async (queryInterface, Sequelize) => {
       await queryInterface.createTable('ProductSpecifications', {
         id: {
-          type: Sequelize.UUID,
-          defaultValue: Sequelize.UUIDV4,
-          primaryKey: true
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: Sequelize.INTEGER
         },
         productId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: false,
           references: {
             model: 'Products',
@@ -16,7 +17,7 @@ module.exports = {
           onDelete: 'CASCADE'
         },
         specificationTemplateId: {
-          type: Sequelize.UUID,
+          type: Sequelize.INTEGER,
           allowNull: false,
           references: {
             model: 'SpecificationTemplates',

@@ -1,4 +1,4 @@
-const { Product, Category } = require('../models');
+const { Product, Category, ProductSpecification, SpecificationTemplate } = require('../models');
 const { Op } = require('sequelize');
 const fs = require('fs').promises;
 const path = require('path');
@@ -274,11 +274,21 @@ exports.searchProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
-            include: [{
-                model: Category,
-                as: 'category',
-                attributes: ['id', 'name', 'slug']
-            }]
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    attributes: ['id', 'name', 'slug']
+                }, {
+                    model: ProductSpecification,
+                    as: 'specifications',
+                    include: [{
+                        model: SpecificationTemplate,
+                        as: 'template',
+                    }]
+                }
+
+            ]
         });
 
         if (!product) {

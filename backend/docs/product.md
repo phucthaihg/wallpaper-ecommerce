@@ -225,7 +225,7 @@ Create a new product.
 | compareAtPrice  | number  | No       | Original price         | > 0               |
 | sku             | string  | Yes      | Stock keeping unit     | Unique, alphanumeric |
 | stockQuantity   | number  | Yes      | Available quantity     | >= 0              |
-| categoryId      | string  | Yes      | Category ID            | Valid UUID        |
+| categoryId      | string  | Yes      | Category ID            | Valid ID          |
 | images          | files   | No       | Product images         | Max 5, 2MB each   |
 | specifications  | object  | No       | Product specifications | Valid JSON        |
 | tags            | array   | No       | Product tags           | Array of strings  |

@@ -8,11 +8,10 @@ const sequelize = require('../config/database');
  */
 const Product = sequelize.define('Product', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier for the product
-    // Định danh duy nhất cho sản phẩm
+    type: DataTypes.INTEGER
   },
   name: {
     type: DataTypes.STRING,
@@ -73,7 +72,7 @@ const Product = sequelize.define('Product', {
     // Số lượng có sẵn trong kho
   },
   categoryId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Categories',

@@ -10,11 +10,10 @@ const sequelize = require('../config/database');
  */
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier for the user
-    // Định danh duy nhất cho người dùng
+    type: DataTypes.INTEGER
   },
   email: {
     type: DataTypes.STRING,

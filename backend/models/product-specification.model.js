@@ -3,14 +3,13 @@ const sequelize = require('../config/database');
 
 const ProductSpecification = sequelize.define('ProductSpecification', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier
-    // Định danh duy nhất
+    type: DataTypes.INTEGER
   },
   productId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Products',
@@ -20,7 +19,7 @@ const ProductSpecification = sequelize.define('ProductSpecification', {
     // ID sản phẩm liên quan
   },
   specificationTemplateId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'SpecificationTemplates',

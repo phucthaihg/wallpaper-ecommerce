@@ -59,14 +59,36 @@ export const useAuth = () => {
    }
  });
 
- // Logout
- const logout = () => {
-   localStorage.removeItem('token');
-   queryClient.setQueryData(['user'], null);
-   queryClient.clear(); // Clear all queries
-   toast.success('Đã đăng xuất');
-   navigate('/login');
- };
+ // Forgot password mutation
+ const forgotPassword = useMutation({
+  mutationFn: async (email) => {
+    const { data } = await api.post('/auth/forgot-password', { email });
+    return data;
+  },
+  onSuccess: () => {
+    toast.success('Đã gửi email hướng dẫn đặt lại mật khẩu');
+  },
+  onError: (error) => {
+    const message = error.response?.data?.message || 'Không thể gửi email';
+    toast.error(message);
+  }
+});
+
+// Reset password mutation
+const resetPassword = useMutation({
+  mutationFn: async ({ token, password }) => {
+    const { data } = await api.post('/auth/reset-password', { token, password });
+    return data;
+  },
+  onSuccess: () => {
+    toast.success('Đặt lại mật khẩu thành công');
+    navigate('/login');
+  },
+  onError: (error) => {
+    const message = error.response?.data?.message || 'Không thể đặt lại mật khẩu';
+    toast.error(message);
+  }
+});
 
  // Change password
  const changePassword = useMutation({
@@ -83,13 +105,41 @@ export const useAuth = () => {
    }
  });
 
- return {
-   user,
-   isLoading,
-   login,
-   register,
-   logout,
-   changePassword,
-   isAuthenticated: !!user
+  // Update profile mutation
+  const updateProfile = useMutation({
+    mutationFn: async (profileData) => {
+      const { data } = await api.put('/auth/profile', profileData);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['user'], data);
+      toast.success('Cập nhật thông tin thành công');
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Không thể cập nhật thông tin';
+      toast.error(message);
+    }
+  });
+ 
+  // Logout function
+  const logout = () => {
+    localStorage.removeItem('token');
+    queryClient.setQueryData(['user'], null);
+    queryClient.clear(); // Clear all queries
+    toast.success('Đã đăng xuất');
+    navigate('/login');
+  };
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+    changePassword,
+    updateProfile,
+    logout
+  };
  };
-};

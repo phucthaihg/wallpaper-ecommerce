@@ -1,15 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/layout/Layout';
-import HomePage from './pages/HomePage';
-//import ProductsPage from './pages/ProductsPage';
-//import ProductDetailPage from './pages/ProductDetailPage';
+import HomePage from './pages/shop/HomePage';
+import ProductsPage from './pages/shop/ProductsPage';
+import CategoriesPage from './pages/shop/CategoriesPage';
+import ProductDetailPage from './pages/shop/ProductDetailPage';
+import CategoryDetailPage from './pages/shop/CategoryDetailPage';
 //import CartPage from './pages/CartPage';
-//import LoginPage from './pages/LoginPage';
-//import RegisterPage from './pages/RegisterPage';
-//import ProfilePage from './pages/ProfilePage';
-//import AdminDashboard from './pages/admin/Dashboard';
-//import PrivateRoute from './components/auth/PrivateRoute';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ProfilePage from './pages/user/ProfilePage';
+import AdminDashboard from './pages/admin/AdminDashboardPage';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 const queryClient = new QueryClient({
  defaultOptions: {
@@ -27,22 +30,29 @@ function App() {
        <Routes>
          <Route path="/" element={<Layout />}>
            {/* Public Routes */}
-           <Route index element={<HomePage />} />{/** 
-           <Route path="products" element={<ProductsPage />} />
-           <Route path="products/:id" element={<ProductDetailPage />} />
-           <Route path="login" element={<LoginPage />} />
-           <Route path="register" element={<RegisterPage />} />*/}
-           
-           {/* Protected Routes */} {/** 
-           <Route element={<PrivateRoute />}>
-             <Route path="cart" element={<CartPage />} />
-             <Route path="profile" element={<ProfilePage />} />
-           </Route>*/}
+           <Route index element={<HomePage />} />
 
-           {/* Admin Routes */} {/** 
+           <Route path="products" element={<ProductsPage />} />
+           <Route path="categories" element={<CategoriesPage />} />
+           
+           <Route path="categories/:id" element={<CategoryDetailPage />} />
+           <Route path="products/:id" element={<ProductDetailPage />} />
+           
+  
+           <Route path="login" element={<LoginPage />} />
+           <Route path="register" element={<RegisterPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
+           
+           {/* Protected Routes */} 
+           <Route element={<PrivateRoute />}>
+             {/* <Route path="cart" element={<CartPage />} /> */}
+             <Route path="profile" element={<ProfilePage />} />
+           </Route>
+
+           {/* Admin Routes */}
            <Route element={<PrivateRoute role="admin" />}>
              <Route path="admin/*" element={<AdminDashboard />} />
-           </Route>*/}
+           </Route>
          </Route>
        </Routes>
      </Router>

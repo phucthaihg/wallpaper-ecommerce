@@ -11,9 +11,10 @@ const upload = require('../config/multer');
 router.get('/', productController.getAllProducts);
 router.get('/featured', productController.getFeaturedProducts);
 router.get('/search', productController.searchProducts);
-router.get('/:id', productController.getProductById);
+
 router.get('/slug/:slug', productController.getProductBySlug);
 router.get('/category/:categoryId', productController.getProductsByCategory);
+router.get('/:id', productController.getProductById);
 
 /**
  * Protected routes for product management

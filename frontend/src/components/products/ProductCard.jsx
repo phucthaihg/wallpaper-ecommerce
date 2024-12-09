@@ -17,7 +17,7 @@ function ProductCard({ product }) {
       <Link to={`/products/${product.id}`}>
         <div className="aspect-square overflow-hidden rounded-lg">
           <img
-            src={product.image}
+            src={product.featuredImage}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
           />

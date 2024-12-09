@@ -7,14 +7,13 @@ const sequelize = require('../config/database');
 
 const Cart = sequelize.define('Cart', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
+    autoIncrement: true,
     primaryKey: true,
-    // Unique identifier for cart
-    // Định danh duy nhất cho giỏ hàng
+    type: DataTypes.INTEGER
   },
   userId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: true,
     references: {
       model: 'Users',
@@ -51,12 +50,13 @@ const Cart = sequelize.define('Cart', {
 
 const CartItem = sequelize.define('CartItem', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+    type: DataTypes.INTEGER
   },
   cartId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Carts',
@@ -64,7 +64,7 @@ const CartItem = sequelize.define('CartItem', {
     }
   },
   productId: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Products',

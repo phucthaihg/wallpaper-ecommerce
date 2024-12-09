@@ -11,18 +11,13 @@ export const categoryService = {
   // Get a single category
   getById: async (id) => {
     const { data } = await api.get(`/categories/${id}`);
+    console.log("categoryService.getById", data);
     return data;
   },
 
   // Get category by slug
   getBySlug: async (slug) => {
     const { data } = await api.get(`/categories/slug/${slug}`);
-    return data;
-  },
-
-  // Get featured categories
-  getFeatured: async () => {
-    const { data } = await api.get('/categories/featured');
     return data;
   },
 
@@ -81,6 +76,7 @@ export const categoryService = {
   // Get category tree (hierarchical structure)
   getTree: async () => {
     const { data } = await api.get('/categories/tree');
+    console.log("categoryService.getTree", data);
     return data;
   }
 };

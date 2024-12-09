@@ -120,7 +120,7 @@ Create a new specification template.
 | unit         | string  | No       | Measurement unit         | -                |
 | options      | array   | No       | Options for select type  | Required if type=select |
 | required     | boolean | No       | Is field required        | -                |
-| categoryId   | string  | Yes      | Category ID              | Valid UUID       |
+| categoryId   | string  | Yes      | Category ID              | Valid ID         |
 | displayOrder | number  | No       | Display order            | >= 0             |
 | description  | string  | No       | Help text                | Max 200 chars    |
 | validation   | object  | No       | Validation rules         | Valid JSON       |

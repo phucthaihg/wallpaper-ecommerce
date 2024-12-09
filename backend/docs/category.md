@@ -193,7 +193,7 @@ Create a new category.
 |-------------|---------|----------|--------------------------|-------------------|
 | name        | string  | Yes      | Category name           | 2-50 characters   |
 | description | string  | No       | Category description    | Max 500 chars     |
-| parentId    | string  | No       | Parent category ID      | Valid UUID        |
+| parentId    | string  | No       | Parent category ID      | Valid ID          |
 | image       | file    | No       | Category image          | Max 2MB, img only |
 | metadata    | object  | No       | SEO metadata            | Valid JSON        |
 | isActive    | boolean | No       | Category status         | Boolean           |

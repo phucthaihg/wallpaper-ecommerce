@@ -25,7 +25,7 @@ exports.validateProduct = [
     .withMessage('Stock quantity must be a positive number'),
   
   body('categoryId')
-    .isUUID()
+    .isInt()
     .withMessage('Valid category ID is required'),
   
   body('specifications')
