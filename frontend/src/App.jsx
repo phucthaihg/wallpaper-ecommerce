@@ -6,7 +6,7 @@ import ProductsPage from './pages/shop/ProductsPage';
 import CategoriesPage from './pages/shop/CategoriesPage';
 import ProductDetailPage from './pages/shop/ProductDetailPage';
 import CategoryDetailPage from './pages/shop/CategoryDetailPage';
-//import CartPage from './pages/CartPage';
+import CartPage from './pages/shop/CartPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
@@ -45,7 +45,7 @@ function App() {
            
            {/* Protected Routes */} 
            <Route element={<PrivateRoute />}>
-             {/* <Route path="cart" element={<CartPage />} /> */}
+             <Route path="cart" element={<CartPage />} />
              <Route path="profile" element={<ProfilePage />} />
            </Route>
 
