@@ -55,7 +55,8 @@ exports.addToCart = async (req, res) => {
         const { productId, quantity, specifications } = req.body;
         const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
         console.log("addToCart sessionId", sessionId)
-        const userId = req.user?.id;
+        const userId = req.user?.id||null;
+        console.log("addToCart userId", userId)
 
         // Validate product and stock / Kiểm tra sản phẩm và tồn kho
         const product = await Product.findByPk(productId);
@@ -77,6 +78,7 @@ exports.addToCart = async (req, res) => {
                 status: 'active'
             }
         });
+        console.log("addToCart cart ", cart)
 
         if (!cart) {
             cart = await Cart.create({

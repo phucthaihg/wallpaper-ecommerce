@@ -119,6 +119,8 @@ module.exports = {
   Product,
   SpecificationTemplate,
   ProductSpecification,
+  Cart,
+  CartItem,
   models: {
     User,
     Category,
