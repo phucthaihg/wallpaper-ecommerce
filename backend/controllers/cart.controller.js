@@ -8,7 +8,11 @@ const { Op } = require('sequelize');
 exports.getCart = async (req, res) => {
     try {
         const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("getCart sessionId", sessionId)
+
         const userId = req.user?.id;
+
+        
 
         // Find active cart for user or session
         // Tìm giỏ hàng đang hoạt động cho người dùng hoặc phiên
@@ -49,7 +53,8 @@ exports.getCart = async (req, res) => {
 exports.addToCart = async (req, res) => {
     try {
         const { productId, quantity, specifications } = req.body;
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("addToCart sessionId", sessionId)
         const userId = req.user?.id;
 
         // Validate product and stock / Kiểm tra sản phẩm và tồn kho
@@ -173,7 +178,8 @@ exports.removeCartItem = async (req, res) => {
 */
 exports.clearCart = async (req, res) => {
     try {
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("clearCart sessionId", sessionId)
         const userId = req.user?.id;
 
         const cart = await Cart.findOne({
@@ -200,7 +206,8 @@ exports.clearCart = async (req, res) => {
 exports.applyCoupon = async (req, res) => {
     try {
         const { code } = req.body;
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("applyCoupon sessionId", sessionId)
         const userId = req.user?.id;
 
         // Validate coupon / Kiểm tra mã giảm giá
@@ -262,7 +269,8 @@ exports.applyCoupon = async (req, res) => {
 */
 exports.removeCoupon = async (req, res) => {
     try {
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("removeCoupon sessionId", sessionId)
         const userId = req.user?.id;
 
         const cart = await Cart.findOne({
@@ -291,7 +299,8 @@ exports.removeCoupon = async (req, res) => {
 */
 exports.getCartSummary = async (req, res) => {
     try {
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("getCartSummary sessionId", sessionId)
         const userId = req.user?.id;
 
         const cart = await Cart.findOne({
@@ -334,7 +343,8 @@ exports.getCartSummary = async (req, res) => {
 */
 exports.mergeCarts = async (req, res) => {
     try {
-        const { sessionId } = req.cookies;
+        const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+        console.log("mergeCarts sessionId", sessionId)
         const userId = req.user.id;
 
         const [guestCart, userCart] = await Promise.all([
