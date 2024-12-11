@@ -78,7 +78,6 @@ exports.addToCart = async (req, res) => {
                 status: 'active'
             }
         });
-        console.log("addToCart cart ", cart)
 
         if (!cart) {
             cart = await Cart.create({
@@ -322,7 +321,8 @@ exports.getCartSummary = async (req, res) => {
                 total: 0
             });
         }
-
+        console.log("getCartSummary cart", cart)
+        
         // Calculate totals / Tính tổng tiền
         const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const tax = subtotal * 0.1; // 10% tax / 10% thuế
