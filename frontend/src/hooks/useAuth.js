@@ -14,7 +14,7 @@ export const useAuth = () => {
      try {
        const token = localStorage.getItem('token');
        if (!token) return null;
-       const { data } = await api.get('/auth/profile');
+       const { data } = await api.get('/users/profile');
        return data;
      } catch (error) {
        localStorage.removeItem('token'); // Clear invalid token

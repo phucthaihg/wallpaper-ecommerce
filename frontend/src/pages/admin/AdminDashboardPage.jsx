@@ -8,7 +8,7 @@ import {
  ClipboardDocumentListIcon 
 } from '@heroicons/react/24/outline';
 import AdminProducts from './products/AdminProducts';
-import AdminCategories from './categories/AdminCategories';
+import AdminCategories from './categories/AdminCategoriesold';
 import AdminUsers from './users/AdminUsers';
 
 function AdminDashboardPage() {

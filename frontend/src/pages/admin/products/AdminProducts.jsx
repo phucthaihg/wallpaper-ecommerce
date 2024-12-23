@@ -17,7 +17,7 @@ function AdminProducts() {
     description: '',
     price: '',
     categoryId: '',
-    stock: '',
+    stockQuantity: '',
     images: [],
     isActive: true
   });
@@ -40,7 +40,7 @@ function AdminProducts() {
 
   const fetchCategories = async () => {
     try {
-      const data = await categoryService.getAll();
+      const data = await categoryService.getTree();
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -107,7 +107,7 @@ function AdminProducts() {
       description: '',
       price: '',
       categoryId: '',
-      stock: '',
+      stockQuantity: '',
       images: [],
       isActive: true
     });
@@ -115,7 +115,7 @@ function AdminProducts() {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.categoryId === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || product.categoryId == selectedCategory;
     return matchesCategory;
   });
 
@@ -192,7 +192,7 @@ function AdminProducts() {
                   {categories.find(c => c.id === product.categoryId)?.name}
                 </td>
                 <td className="px-6 py-4">{product.price.toLocaleString()}đ</td>
-                <td className="px-6 py-4">{product.stock}</td>
+                <td className="px-6 py-4">{product.stockQuantity}</td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     product.isActive 
@@ -279,8 +279,8 @@ function AdminProducts() {
                   type="number"
                   placeholder="Số lượng tồn kho"
                   className="w-full p-2 border rounded"
-                  value={productForm.stock}
-                  onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                  value={productForm.stockQuantity}
+                  onChange={(e) => setProductForm({ ...productForm, stockQuantity: e.target.value })}
                 />
               </div>
               <div>

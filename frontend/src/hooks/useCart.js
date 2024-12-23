@@ -13,7 +13,7 @@ export const useCart = () => {
        const { data } = await api.get('/cart');
        return data;
      } catch (error) {
-       toast.error('Không thể tải giỏ hàng');
+       //toast.error('Không thể tải giỏ hàng');
        return null;
      }
    }
